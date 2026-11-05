@@ -82,3 +82,9 @@ dialog{color:var(--ink);background:#fffef9;border:1px solid #d7dacc;border-radiu
 .home-menu-btn{display:inline-flex;align-items:center;gap:10px;border:1px solid #e9d9a8;background:#f6efdc;color:#4a2b2f;font:600 15px/1 UISans,Arial,sans-serif;padding:15px 26px;border-radius:999px;box-shadow:0 6px 20px #00000055}
 .home-menu-btn:active{background:#ecdfb8}
 }
+
+/* Главная на телефоне: вертикальная картина */
+@media(max-width:850px){
+.home-page::before{background-image:url('home-bg-mobile.jpg')}
+.home-portrait{width:min(100%,calc((100dvh - 190px)*0.5628));aspect-ratio:941/1672;background-image:url('home-bg-mobile.jpg');background-size:100% 100%}
+}
