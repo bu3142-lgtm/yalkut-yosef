@@ -11,6 +11,7 @@ const chapterCache=new Map();
 const chapterKey=suffix=>`yy${data.chapter}-${suffix}`;
 const getSaved=k=>{try{return localStorage.getItem(k)}catch{return null}};
 const save=(k,v)=>{try{localStorage.setItem(k,String(v))}catch{}};
+const SHARE_ICON='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="m8.3 10.8 7.4-4.4M8.3 13.2l7.4 4.4"/></svg>';
 const stripTags=s=>s.replace(/<\/?(?:n\d+|em|strong|he)>/g,'');
 /* Текст пункта: ru содержит <em>, <strong>, <he> и <nK>…</nK> (слово с примечанием K) */
 function rich(s,interactive=true){
@@ -43,7 +44,7 @@ function adjacentChapter(d){const i=chapterOrder.indexOf(data.chapterNum);return
 function selectSeif(id,scroll=false,keepMenu=false){
   const s=seifById(id);if(!s)return;selected=s.id;save(chapterKey('last'),selected);
   const url=new URL(location.href);url.searchParams.set('chapter',data.chapterNum);url.searchParams.set('seif',selected);history.replaceState(history.state,'',url);
-  $('#reader').innerHTML=`${s.headingBefore?`<div class="block-heading">${plain(s.headingBefore)}</div>`:''}${partHeading(s)}<h2 class="law-title">Пункт ${s.n}</h2>${lawHTML(s)}${notesHTML(s)}${s.headingAfter?`<div class="block-heading">${plain(s.headingAfter)}</div>`:''}`;
+  $('#reader').innerHTML=`${s.headingBefore?`<div class="block-heading">${plain(s.headingBefore)}</div>`:''}${partHeading(s)}<h2 class="law-title">Пункт ${s.n}</h2>${lawHTML(s)}${notesHTML(s)}<div class="share-row"><button class="share-pill" type="button" data-share>${SHARE_ICON}<span>Поделиться этим пунктом</span></button></div>${s.headingAfter?`<div class="block-heading">${plain(s.headingAfter)}</div>`:''}`;
   $('#seifLabel').textContent=`ПУНКТ ${s.n}`+(data.parts.length>1&&partOf(s).label?` · ${partOf(s).label.toUpperCase()}`:'');
   document.querySelectorAll('[data-select]').forEach(b=>{const a=Number(b.dataset.select)===selected;b.classList.toggle('selected',a)});
   $('#seifSelect').value=String(selected);
@@ -71,6 +72,36 @@ function openNote(n){const c=allNotes().find(c=>c.seif===selected&&c.n===Number(
 function goToNote(){const t=document.getElementById(`note-${selected}-${currentNote}`);if(!t)return;t.scrollIntoView({behavior:'smooth',block:'center'});t.classList.add('show-flash');setTimeout(()=>t.classList.remove('show-flash'),2200)}
 function notify(text){clearTimeout(toastTimer);$('#toast').textContent=text;$('#toast').hidden=false;toastTimer=setTimeout(()=>$('#toast').hidden=true,2600)}
 function setFont(size){fontSize=Math.max(15,Math.min(26,size));document.documentElement.style.setProperty('--reader-size',fontSize+'px');save('yy-font',fontSize);$('#fontDown').disabled=fontSize===15;$('#fontUp').disabled=fontSize===26}
+
+/* Поделиться пунктом */
+const SHARE_LIMIT=1800;
+function shareData(){
+  const s=seifById(selected);
+  const base=location.origin+location.pathname;
+  const url=`${base}?chapter=${data.chapterNum}&seif=${s.id}`;
+  const p=partOf(s);
+  const where=`${data.chapterLabel}, пункт ${s.n}`;
+  const sub=data.parts.length>1?`${p.label?p.label[0].toUpperCase()+p.label.slice(1)+'. ':''}${p.title}`:data.title;
+  let body=stripTags(s.ru).replace(/\s+/g,' ').trim();
+  const cut=body.length>SHARE_LIMIT;
+  if(cut)body=body.slice(0,SHARE_LIMIT).replace(/\s+\S*$/,'')+'…';
+  const head=`Ялкут Йосеф · ${where}\n${sub}`;
+  const text=`${head}\n\n${body}${cut?'\n\n(полный текст по ссылке)':''}`;
+  return {url,head,sub,where,text,full:`${text}\n\n${url}`,preview:body.length>200?body.slice(0,200).replace(/\s+\S*$/,'')+'…':body};
+}
+async function copyText(t,okMsg){
+  try{await navigator.clipboard.writeText(t);notify(okMsg);return}catch{}
+  const ta=document.createElement('textarea');ta.value=t;ta.setAttribute('readonly','');ta.style.cssText='position:fixed;opacity:0;top:0;left:0';document.body.appendChild(ta);ta.select();
+  let ok=false;try{ok=document.execCommand('copy')}catch{}ta.remove();notify(ok?okMsg:'Не удалось скопировать. Выделите текст вручную.');
+}
+function openShare(){
+  const d=shareData();
+  $('#shareWhere').textContent=d.where;$('#shareSub').textContent=d.sub;$('#sharePreview').textContent=d.preview;
+  $('#shareWa').href='https://wa.me/?text='+encodeURIComponent(d.full);
+  $('#shareTg').href='https://t.me/share/url?url='+encodeURIComponent(d.url)+'&text='+encodeURIComponent(d.text);
+  $('#shareNative').hidden=!navigator.share;
+  $('#shareDialog').dataset.url=d.url;$('#shareDialog').showModal();
+}
 function makePrint(){if(!data)return;const all=$('input[name="range"]:checked')?.value!=='current';const seifs=data.seifim.filter(s=>all||s.id===selected);
   $('#printRoot').innerHTML=`<h1>Ялкут Йосеф</h1><p class="print-subtitle">${escapeHTML(data.chapterLabel)} · ${escapeHTML(data.theme)}<br>${escapeHTML(data.title)}</p>${seifs.map(s=>`<section>${s.headingBefore?`<h3>${escapeHTML(s.headingBefore)}</h3>`:''}${data.parts.length>1?partHeading(s):''}<h2 class="law-title">Пункт ${s.n}</h2>${lawHTML(s,true)}${notesHTML(s,true)}</section>`).join('')}<div class="print-sources">Ялкут Йосеф — русское издание. ${escapeHTML(data.chapterLabel)}.</div>`}
 function closeMenu(){$('#sidebar').classList.remove('open');$('#shade').hidden=true;$('#menuBtn').setAttribute('aria-expanded','false')}
@@ -140,7 +171,11 @@ async function init(){try{
   $('#chapterSearch').oninput=chapterSuggest;
   $('#chapterSearch').onkeydown=e=>{if(e.key==='Enter'){const f=$('#chapterSuggest [data-suggest]');if(f)f.click()}if(e.key==='Escape'){$('#chapterSuggest').hidden=true}};
   $('#chapterSuggest').onclick=e=>{const b=e.target.closest('[data-suggest]');if(!b)return;$('#chapterSuggest').hidden=true;$('#chapterSearch').value='';openChapter(Number(b.dataset.suggest))};
-  $('#reader').addEventListener('click',e=>{const b=e.target.closest('[data-note]');if(b)openNote(b.dataset.note)});
+  $('#reader').addEventListener('click',e=>{const b=e.target.closest('[data-note]');if(b){openNote(b.dataset.note);return}if(e.target.closest('[data-share]'))openShare()});
+  $('#shareBtn').onclick=openShare;
+  $('#shareNative').onclick=async()=>{const d=shareData();try{await navigator.share({title:d.head.split('\n')[0],text:d.text,url:d.url})}catch{}};
+  $('#shareCopyText').onclick=()=>copyText(shareData().full,'Текст скопирован');
+  $('#shareCopyLink').onclick=()=>copyText(shareData().url,'Ссылка скопирована');
   $('#fontDown').onclick=()=>setFont(fontSize-1);$('#fontUp').onclick=()=>setFont(fontSize+1);
   $('#previousBtn').onclick=()=>step(-1);$('#nextBtn').onclick=()=>step(1);
   $('#bookmarkBtn').onclick=()=>{const exists=Number(getSaved(chapterKey('bookmark')))===selected;save(chapterKey('bookmark'),exists?'':selected);updateBookmark();notify(exists?'Закладка удалена':`Закладка на пункте ${seifById(selected).n} сохранена`)};
