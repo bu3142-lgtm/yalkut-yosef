@@ -151,6 +151,7 @@ async function init(){try{
   $('#goComment').onclick=()=>{$('#commentDialog').close();goToNote()};
   document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>document.getElementById(b.dataset.close).close());
   document.querySelectorAll('dialog').forEach(d=>d.addEventListener('click',e=>{if(e.target===d){const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close()}}));
+  $('#homeMenuBtn').onclick=()=>$('#menuBtn').click();
   $('#menuBtn').setAttribute('aria-expanded','false');$('#menuBtn').onclick=()=>{const o=$('#sidebar').classList.toggle('open');$('#shade').hidden=!o;$('#menuBtn').setAttribute('aria-expanded',String(o))};$('#shade').onclick=closeMenu;
   document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu()});
   mobileReading.addEventListener('change',()=>{if(home||!data)return;const top=window.scrollY;selectSeif(selected);if($('#commentDialog').open)openNote(currentNote);window.scrollTo({top})});

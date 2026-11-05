@@ -70,3 +70,15 @@ dialog{color:var(--ink);background:#fffef9;border:1px solid #d7dacc;border-radiu
 /* длинные названия разделов не растягивают верхнюю строку */
 .topbar .crumb{min-width:0;flex:1 1 auto;overflow:hidden}
 .crumb>*{flex:0 0 auto}.crumb #chapterSection{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Главная на телефоне: картина на размытом фоне из неё же */
+.home-menu-btn{display:none}
+@media(max-width:850px){
+.home-page{position:relative;isolation:isolate;overflow:hidden;gap:22px;padding:20px 14px}
+.home-page::before{content:"";position:absolute;inset:-40px;z-index:-2;background:url('home-bg.jpg') center/cover no-repeat;filter:blur(26px) saturate(1.15);transform:scale(1.15)}
+.home-page::after{content:"";position:absolute;inset:0;z-index:-1;background:rgba(20,22,36,.5)}
+.home-portrait{border:0;border-radius:10px;box-shadow:0 14px 40px #0000008c}
+.home-hint{display:none}
+.home-menu-btn{display:inline-flex;align-items:center;gap:10px;border:1px solid #e9d9a8;background:#f6efdc;color:#4a2b2f;font:600 15px/1 UISans,Arial,sans-serif;padding:15px 26px;border-radius:999px;box-shadow:0 6px 20px #00000055}
+.home-menu-btn:active{background:#ecdfb8}
+}
