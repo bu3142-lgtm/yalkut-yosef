@@ -119,3 +119,11 @@ dialog{color:var(--ink);background:#fffef9;border:1px solid #d7dacc;border-radiu
 @media(max-width:480px){.share-dialog{padding:16px 16px 18px}.share-card{padding:16px 16px;margin:10px 0 14px}.share-card blockquote{font-size:14.5px;line-height:1.55}.share-opt{min-height:46px;font-size:12.5px}}
 .share-dialog{max-height:calc(100dvh - 24px);overflow-y:auto}
 @media print{.share-row,.share-dialog{display:none!important}}
+
+/* ПК: картина на весь экран под шапкой */
+@media(min-width:851px){
+#main.home-active{padding:0}
+.home-page{position:relative;display:block;padding:0;gap:0;min-height:calc(100dvh - 69px);height:calc(100dvh - 69px)}
+.home-portrait{position:absolute;inset:0;width:100%;height:100%;max-height:none;aspect-ratio:auto;border:0;border-radius:0;box-shadow:none;background:url('home-bg.jpg') center 45%/cover no-repeat}
+.home-hint{position:absolute;left:50%;transform:translateX(-50%);bottom:8px;z-index:2;max-width:min(92%,640px);padding:6px 20px;border-radius:999px;background:rgba(246,239,220,.92);color:#4a2b2f;box-shadow:0 6px 20px #00000055}
+}
